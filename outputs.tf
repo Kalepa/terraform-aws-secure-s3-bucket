@@ -8,6 +8,11 @@ output "bucket_arn" {
     value = aws_s3_bucket.this.arn
 }
 
+output "bucket_regional_domain_name" {
+    description = "The regional domain name of the bucket that was created."
+    value = aws_s3_bucket.this.bucket_regional_domain_name
+}
+
 output "complete" {
     depends_on = [
         aws_s3_bucket_accelerate_configuration.this

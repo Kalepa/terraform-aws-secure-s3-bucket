@@ -31,3 +31,33 @@ variable "enable_transfer_acceleration" {
   type        = bool
   default     = false
 }
+
+variable "block_public_acls" {
+  description = "The `block_public_acls` value of an `aws_s3_bucket_public_access_block` resource that is applied to this bucket."
+  type        = bool
+  default     = true
+}
+
+variable "block_public_policy" {
+  description = "The `block_public_policy` value of an `aws_s3_bucket_public_access_block` resource that is applied to this bucket."
+  type        = bool
+  default     = true
+}
+
+variable "ignore_public_acls" {
+  description = "The `ignore_public_acls` value of an `aws_s3_bucket_public_access_block` resource that is applied to this bucket."
+  type        = bool
+  default     = true
+}
+
+variable "restrict_public_buckets" {
+  description = "The `restrict_public_buckets` value of an `aws_s3_bucket_public_access_block` resource that is applied to this bucket."
+  type        = bool
+  default     = true
+}
+
+variable "object_ownership" {
+  description = "The `rule.object_ownership` value of an `aws_s3_bucket_ownership_controls` resource that is applied to this bucket."
+  type        = string
+  default     = "BucketOwnerEnforced"
+}
