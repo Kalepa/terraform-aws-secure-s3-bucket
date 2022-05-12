@@ -1,7 +1,7 @@
 data "aws_region" "current" {}
 
 resource "aws_s3_bucket" "this" {
-  bucket = var.bucket_name
+  bucket = "${var.bucket_name}${var.append_region_suffix ? data.aws_region.current.name : ""}"
 }
 
 resource "aws_s3_bucket_versioning" "this" {

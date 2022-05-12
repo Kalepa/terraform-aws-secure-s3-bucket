@@ -61,3 +61,9 @@ variable "object_ownership" {
   type        = string
   default     = "BucketOwnerEnforced"
 }
+
+variable "append_region_suffix" {
+  description = "If `true`, a suffix in the form of `-{region_name}` will be appended to the bucket name. This is convenient if you're creating buckets in multiple regions and don't want to manually specify the region name in each one for uniqueness."
+  type        = bool
+  default     = false
+}
