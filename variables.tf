@@ -67,3 +67,15 @@ variable "append_region_suffix" {
   type        = bool
   default     = false
 }
+
+variable "object_lock_enabled" {
+  description = "Indicates whether this bucket has an Object Lock configuration enabled."
+  type        = bool
+  default     = false
+}
+
+variable "force_destroy" {
+  description = "A boolean that indicates all objects (including any locked objects) should be deleted from the bucket so that the bucket can be destroyed without error."
+  type        = bool
+  default     = false
+}
