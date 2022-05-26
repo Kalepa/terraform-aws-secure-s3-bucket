@@ -1,4 +1,4 @@
-variable "bucket_name" {
+variable "name" {
   description = "The name to use for the bucket."
   type        = string
 }
@@ -76,6 +76,12 @@ variable "object_lock_enabled" {
 
 variable "force_destroy" {
   description = "A boolean that indicates all objects (including any locked objects) should be deleted from the bucket so that the bucket can be destroyed without error."
+  type        = bool
+  default     = false
+}
+
+variable "force_allow_cloudtrail_digest" {
+  description = "Whether to allow AES256 (AWS-managed key) encryption for paths checked by CloudTrail digest writers. Even when a bucket and a CloudTrail are both set to use KMS encryption, digests are still written using AWS-managed key AES256 encryption (). This variable only has an effect when the `kms_key_id` variable is provided and not `null`."
   type        = bool
   default     = false
 }

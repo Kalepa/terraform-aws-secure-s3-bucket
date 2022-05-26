@@ -1,7 +1,7 @@
 data "aws_region" "current" {}
 
 resource "aws_s3_bucket" "this" {
-  bucket              = "${var.bucket_name}${var.append_region_suffix ? "-${data.aws_region.current.name}" : ""}"
+  bucket              = "${var.name}${var.append_region_suffix ? "-${data.aws_region.current.name}" : ""}"
   object_lock_enabled = var.object_lock_enabled
   force_destroy       = var.force_destroy
 }
@@ -40,6 +40,16 @@ resource "aws_s3_bucket_ownership_controls" "this" {
   }
 }
 
+locals {
+  // We have to do special things to allow CloudTrail digests to be written, since they
+  // refuse to use KMS keys.
+  // https://docs.aws.amazon.com/awscloudtrail/latest/userguide/encrypting-cloudtrail-log-files-with-aws-kms.html
+  allow_cloudtrail_digest = var.force_allow_cloudtrail_digest && var.kms_key_arn != null
+  // This ARN represents the paths that CloudTrail Digest logs could be written to
+  // https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-log-file-validation-digest-file-structure.html#cloudtrail-log-file-validation-digest-file-location
+  cloudtrail_digest_arn = "${aws_s3_bucket.this.arn}/*/AWSLogs/*/CloudTrail-Digest/*"
+}
+
 // Create a bucket policy that requires all uploaded objects to be encrypted
 data "aws_iam_policy_document" "this" {
 
@@ -50,18 +60,39 @@ data "aws_iam_policy_document" "this" {
   statement {
     sid    = "DenyIncorrectEncryptionHeader"
     effect = "Deny"
-    principals {
-      type        = "*"
-      identifiers = ["*"]
+
+    // If we're not doing special CloudTrail rules, apply this policy to everything
+    dynamic "principals" {
+      for_each = !local.allow_cloudtrail_digest ? [1] : []
+      content {
+        type = "*"
+        identifiers = [
+          "*"
+        ]
+      }
     }
+
+    // If we ARE doing special CloudTrail rules, apply this policy to everything EXCEPT CloudTrail
+    dynamic "not_principals" {
+      for_each = local.allow_cloudtrail_digest ? [1] : []
+      content {
+        type = "Service"
+        identifiers = [
+          "cloudtrail.amazonaws.com"
+        ]
+      }
+    }
+
+    // It's uploading objects that we want to prevent (if the request doesn't meet the conditions)
     actions = [
       "s3:PutObject",
     ]
-    // This is a temporary patch to allow CloudTrail to pass the write access test
-    // TODO: switch this back to "resources" with a wildcard to apply to all resources
-    not_resources = [
-      "${aws_s3_bucket.this.arn}/AWSLogs/*/*",
+
+    // Apply this statement to ALL resources in the bucket
+    resources = [
+      "${aws_s3_bucket.this.arn}/*",
     ]
+
     // Trigger this deny if the header is provided AND
     condition {
       test     = "Null"
@@ -77,6 +108,49 @@ data "aws_iam_policy_document" "this" {
       values = [
         var.kms_key_arn == null ? "AES256" : "aws:kms",
       ]
+    }
+  }
+
+  dynamic "statement" {
+    for_each = local.allow_cloudtrail_digest ? [1] : []
+    content {
+      sid    = "DenyUnencryptedCloudTrail"
+      effect = "Deny"
+
+      // This applies to everything, INCLUDING CloudTrail
+      principals {
+        type = "*"
+        identifiers = [
+          "*"
+        ]
+      }
+
+      // It's uploading objects that we want to prevent (if the request doesn't meet the conditions)
+      actions = [
+        "s3:PutObject",
+      ]
+
+      // Apply this statement to ALL resources in the bucket OTHER than those written by CloudTrail digests
+      not_resources = [
+        local.cloudtrail_digest_arn,
+      ]
+
+      // Trigger this deny if the header is provided AND
+      condition {
+        test     = "Null"
+        variable = "s3:x-amz-server-side-encryption"
+        values = [
+          false
+        ]
+      }
+      // It's not using the right type of encryption
+      condition {
+        test     = "StringNotEquals"
+        variable = "s3:x-amz-server-side-encryption"
+        values = [
+          var.kms_key_arn == null ? "AES256" : "aws:kms",
+        ]
+      }
     }
   }
 
@@ -122,8 +196,11 @@ resource "aws_s3_bucket_policy" "this" {
   policy = data.aws_iam_policy_document.this.json
 }
 
-// Enable acceleration if desired
+// Enable acceleration if desired. We do it this way (only create the resource
+// if acceleration is enabled) because some regions don't support transfer
+// acceleration, even if we try to set it to "Suspended".
 resource "aws_s3_bucket_accelerate_configuration" "this" {
+  count  = var.enable_transfer_acceleration ? 1 : 0
   bucket = aws_s3_bucket_policy.this.bucket
-  status = var.enable_transfer_acceleration ? "Enabled" : "Suspended"
+  status = "Enabled"
 }
