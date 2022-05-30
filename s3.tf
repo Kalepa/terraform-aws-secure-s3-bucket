@@ -1,5 +1,3 @@
-data "aws_region" "current" {}
-
 resource "aws_s3_bucket" "this" {
   bucket              = "${var.name}${var.append_region_suffix ? "-${data.aws_region.current.name}" : ""}"
   object_lock_enabled = var.object_lock_enabled

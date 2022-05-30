@@ -70,6 +70,11 @@ output "region" {
   value       = data.aws_region.current.name
 }
 
+output "account_id" {
+  description = "The ID of the AWS account that the bucket was created in."
+  value       = data.aws_caller_identity.current.account_id
+}
+
 output "bucket" {
   description = "The `aws_s3_bucket` resource that was created."
   value       = aws_s3_bucket.this
