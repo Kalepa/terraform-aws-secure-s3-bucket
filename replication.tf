@@ -25,7 +25,7 @@ data "aws_iam_policy_document" "outbound_replication" {
   // If we're using a KMS key for decryption, the outbound replication needs
   // to be able to decrypt content that was encrypted using that key
   dynamic "statement" {
-    for_each = var.kms_key_arn == null ? [] : [var.kms_key_arn]
+    for_each = local.used_kms_key_arn == null ? [] : [local.used_kms_key_arn]
     content {
       sid    = "S3KmsReplicateFrom${join("", regexall("[0-9A-Za-z]+", aws_s3_bucket.this.id))}"
       effect = "Allow"
@@ -74,7 +74,7 @@ data "aws_iam_policy_document" "inbound_replication" {
   // If we're using a KMS key for decryption, the inbound replication needs
   // to be able to encrypt content using that key
   dynamic "statement" {
-    for_each = var.kms_key_arn == null ? [] : [var.kms_key_arn]
+    for_each = local.used_kms_key_arn == null ? [] : [local.used_kms_key_arn]
     content {
       sid    = "S3KmsReplicateTo${join("", regexall("[0-9A-Za-z]+", aws_s3_bucket.this.id))}"
       effect = "Allow"
