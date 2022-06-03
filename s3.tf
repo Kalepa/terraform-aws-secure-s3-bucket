@@ -13,7 +13,10 @@ resource "aws_s3_bucket_versioning" "this" {
 }
 
 resource "aws_s3_bucket_server_side_encryption_configuration" "this" {
-  bucket = aws_s3_bucket_versioning.this.bucket
+  depends_on = [
+    aws_s3_bucket_versioning.this
+  ]
+  bucket = aws_s3_bucket.this.id
   rule {
     bucket_key_enabled = local.used_kms_key_arn == null ? null : true
     apply_server_side_encryption_by_default {
@@ -24,7 +27,10 @@ resource "aws_s3_bucket_server_side_encryption_configuration" "this" {
 }
 
 resource "aws_s3_bucket_public_access_block" "this" {
-  bucket                  = aws_s3_bucket_server_side_encryption_configuration.this.bucket
+  depends_on = [
+    aws_s3_bucket_server_side_encryption_configuration.this
+  ]
+  bucket                  = aws_s3_bucket.this.id
   block_public_acls       = local.block_public_acls
   block_public_policy     = local.block_public_policy
   ignore_public_acls      = local.ignore_public_acls
@@ -32,7 +38,10 @@ resource "aws_s3_bucket_public_access_block" "this" {
 }
 
 resource "aws_s3_bucket_ownership_controls" "this" {
-  bucket = aws_s3_bucket_public_access_block.this.bucket
+  depends_on = [
+    aws_s3_bucket_public_access_block.this
+  ]
+  bucket = aws_s3_bucket.this.id
   rule {
     object_ownership = local.object_ownership
   }
@@ -212,7 +221,10 @@ data "aws_iam_policy_document" "this" {
 
 // Set the policy on the bucket
 resource "aws_s3_bucket_policy" "this" {
-  bucket = aws_s3_bucket_ownership_controls.this.bucket
+  depends_on = [
+    aws_s3_bucket_ownership_controls.this
+  ]
+  bucket = aws_s3_bucket.this.id
   policy = data.aws_iam_policy_document.this.json
 }
 
@@ -220,7 +232,10 @@ resource "aws_s3_bucket_policy" "this" {
 // if acceleration is enabled) because some regions don't support transfer
 // acceleration, even if we try to set it to "Suspended".
 resource "aws_s3_bucket_accelerate_configuration" "this" {
-  count  = local.enable_transfer_acceleration ? 1 : 0
-  bucket = aws_s3_bucket_policy.this.bucket
+  count = local.enable_transfer_acceleration ? 1 : 0
+  depends_on = [
+    aws_s3_bucket_policy.this
+  ]
+  bucket = aws_s3_bucket.this.id
   status = "Enabled"
 }
