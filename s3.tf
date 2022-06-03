@@ -73,104 +73,104 @@ data "aws_iam_policy_document" "this" {
     }
   }
 
-  # // If an encryption header is provided, ensure it matches the default
-  # statement {
-  #   sid    = "DenyIncorrectEncryptionHeader"
-  #   effect = "Deny"
+  // If an encryption header is provided, ensure it matches the default
+  statement {
+    sid    = "DenyIncorrectEncryptionHeader"
+    effect = "Deny"
 
-  #   // It's uploading objects that we want to prevent (if the request doesn't meet the conditions)
-  #   actions = [
-  #     "s3:PutObject",
-  #   ]
+    // It's uploading objects that we want to prevent (if the request doesn't meet the conditions)
+    actions = [
+      "s3:PutObject",
+    ]
 
-  #   // Apply this statement to ALL resources in the bucket
-  #   resources = [
-  #     "${aws_s3_bucket.this.arn}/*",
-  #   ]
+    // Apply this statement to ALL resources in the bucket
+    resources = [
+      "${aws_s3_bucket.this.arn}/*",
+    ]
 
-  #   // The statement applies to EVERYTHING
-  #   principals {
-  #     type = "*"
-  #     identifiers = [
-  #       "*"
-  #     ]
-  #   }
+    // The statement applies to EVERYTHING
+    principals {
+      type = "*"
+      identifiers = [
+        "*"
+      ]
+    }
 
-  #   // If we're doing special CloudTrail rules, add an exemption for CloudTrail
-  #   dynamic "condition" {
-  #     for_each = local.allow_cloudtrail_digest ? [1] : []
-  #     content {
-  #       variable = "aws:PrincipalServiceName"
-  #       test     = "StringNotEqualsIfExists"
-  #       values = [
-  #         "cloudtrail.amazonaws.com"
-  #       ]
-  #     }
-  #   }
+    // If we're doing special CloudTrail rules, add an exemption for CloudTrail
+    dynamic "condition" {
+      for_each = local.allow_cloudtrail_digest ? [1] : []
+      content {
+        variable = "aws:PrincipalServiceName"
+        test     = "StringNotEqualsIfExists"
+        values = [
+          "cloudtrail.amazonaws.com"
+        ]
+      }
+    }
 
-  #   // Trigger this deny if the header is provided AND
-  #   condition {
-  #     test     = "Null"
-  #     variable = "s3:x-amz-server-side-encryption"
-  #     values = [
-  #       false
-  #     ]
-  #   }
-  #   // Its value doesn't match the expected one
-  #   condition {
-  #     test     = "StringNotEquals"
-  #     variable = "s3:x-amz-server-side-encryption"
-  #     values = [
-  #       local.used_kms_key_arn == null ? "AES256" : "aws:kms",
-  #     ]
-  #   }
-  # }
+    // Trigger this deny if the header is provided AND
+    condition {
+      test     = "Null"
+      variable = "s3:x-amz-server-side-encryption"
+      values = [
+        false
+      ]
+    }
+    // Its value doesn't match the expected one
+    condition {
+      test     = "StringNotEquals"
+      variable = "s3:x-amz-server-side-encryption"
+      values = [
+        local.used_kms_key_arn == null ? "AES256" : "aws:kms",
+      ]
+    }
+  }
 
-  # dynamic "statement" {
-  #   for_each = local.allow_cloudtrail_digest ? [1] : []
-  #   content {
-  #     sid    = "DenyUnencryptedCloudTrail"
-  #     effect = "Deny"
+  dynamic "statement" {
+    for_each = local.allow_cloudtrail_digest ? [1] : []
+    content {
+      sid    = "DenyUnencryptedCloudTrail"
+      effect = "Deny"
 
-  #     // This applies to everything, INCLUDING CloudTrail
-  #     principals {
-  #       type = "*"
-  #       identifiers = [
-  #         "*"
-  #       ]
-  #     }
+      // This applies to everything, INCLUDING CloudTrail
+      principals {
+        type = "*"
+        identifiers = [
+          "*"
+        ]
+      }
 
-  #     // It's uploading objects that we want to prevent (if the request doesn't meet the conditions)
-  #     actions = [
-  #       "s3:PutObject",
-  #     ]
+      // It's uploading objects that we want to prevent (if the request doesn't meet the conditions)
+      actions = [
+        "s3:PutObject",
+      ]
 
-  #     // Apply this statement to ALL resources in the bucket OTHER than those written by CloudTrail digests
-  #     not_resources = [
-  #       // This ARN represents the paths that CloudTrail Digest logs could be written to
-  #       // https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-log-file-validation-digest-file-structure.html#cloudtrail-log-file-validation-digest-file-location
-  #       "${aws_s3_bucket.this.arn}/*/AWSLogs/*/CloudTrail-Digest/*",
-  #       "${aws_s3_bucket.this.arn}/AWSLogs/*/CloudTrail-Digest/*"
-  #     ]
+      // Apply this statement to ALL resources in the bucket OTHER than those written by CloudTrail digests
+      not_resources = [
+        // This ARN represents the paths that CloudTrail Digest logs could be written to
+        // https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-log-file-validation-digest-file-structure.html#cloudtrail-log-file-validation-digest-file-location
+        "${aws_s3_bucket.this.arn}/*/AWSLogs/*/CloudTrail-Digest/*",
+        "${aws_s3_bucket.this.arn}/AWSLogs/*/CloudTrail-Digest/*"
+      ]
 
-  #     // Trigger this deny if the encryption header is provided (NOT NULL) AND
-  #     condition {
-  #       test     = "Null"
-  #       variable = "s3:x-amz-server-side-encryption"
-  #       values = [
-  #         false
-  #       ]
-  #     }
-  #     // It's not using the right type of encryption
-  #     condition {
-  #       test     = "StringNotEquals"
-  #       variable = "s3:x-amz-server-side-encryption"
-  #       values = [
-  #         local.used_kms_key_arn == null ? "AES256" : "aws:kms",
-  #       ]
-  #     }
-  #   }
-  # }
+      // Trigger this deny if the encryption header is provided (NOT NULL) AND
+      condition {
+        test     = "Null"
+        variable = "s3:x-amz-server-side-encryption"
+        values = [
+          false
+        ]
+      }
+      // It's not using the right type of encryption
+      condition {
+        test     = "StringNotEquals"
+        variable = "s3:x-amz-server-side-encryption"
+        values = [
+          local.used_kms_key_arn == null ? "AES256" : "aws:kms",
+        ]
+      }
+    }
+  }
 
   // If we're using KMS, then ensure that if a KMS key is provided, it matches the default
   dynamic "statement" {
