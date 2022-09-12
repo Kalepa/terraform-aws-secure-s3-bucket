@@ -125,7 +125,7 @@ output "bucket_write_policy_document" {
 
 output "bucket_delete_policy_document" {
   description = "An IAM policy document that grants permissions to delete objects (only current versions) from the bucket."
-  value       = data.aws_iam_policy_document.write.json
+  value       = data.aws_iam_policy_document.delete.json
 }
 
 output "bucket_read_policy_document" {
