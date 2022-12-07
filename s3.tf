@@ -2,6 +2,7 @@ resource "aws_s3_bucket" "this" {
   bucket              = "${var.name}${local.append_region_suffix ? "-${data.aws_region.current.name}" : ""}"
   object_lock_enabled = local.object_lock_enabled
   force_destroy       = local.force_destroy
+  tags                = var.tags
 }
 
 resource "aws_s3_bucket_versioning" "this" {

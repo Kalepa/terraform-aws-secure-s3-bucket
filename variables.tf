@@ -156,3 +156,9 @@ variable "force_allow_cloudtrail_digest" {
 locals {
   force_allow_cloudtrail_digest = var.force_allow_cloudtrail_digest != null ? var.force_allow_cloudtrail_digest : false
 }
+
+variable "tags" {
+  description = "Tags to apply to S3 bucket created in this module."
+  type        = map(string)
+  default     = {}
+}
