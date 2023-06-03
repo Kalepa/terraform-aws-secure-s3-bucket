@@ -1,14 +1,14 @@
 resource "aws_s3_bucket" "this" {
-  bucket              = "${var.name}${local.append_region_suffix ? "-${data.aws_region.current.name}" : ""}"
-  object_lock_enabled = local.object_lock_enabled
-  force_destroy       = local.force_destroy
+  bucket              = "${var.name}${var.append_region_suffix ? "-${data.aws_region.current.name}" : ""}"
+  object_lock_enabled = var.object_lock_enabled
+  force_destroy       = var.force_destroy
 }
 
 resource "aws_s3_bucket_versioning" "this" {
   bucket = aws_s3_bucket.this.id
   versioning_configuration {
     status     = var.versioned ? "Enabled" : "Suspended"
-    mfa_delete = local.mfa_delete_enabled ? "Enabled" : "Disabled"
+    mfa_delete = var.mfa_delete_enabled ? "Enabled" : "Disabled"
   }
 }
 
@@ -31,10 +31,10 @@ resource "aws_s3_bucket_public_access_block" "this" {
     aws_s3_bucket_server_side_encryption_configuration.this
   ]
   bucket                  = aws_s3_bucket.this.id
-  block_public_acls       = local.block_public_acls
-  block_public_policy     = local.block_public_policy
-  ignore_public_acls      = local.ignore_public_acls
-  restrict_public_buckets = local.restrict_public_buckets
+  block_public_acls       = var.block_public_acls
+  block_public_policy     = var.block_public_policy
+  ignore_public_acls      = var.ignore_public_acls
+  restrict_public_buckets = var.restrict_public_buckets
 }
 
 resource "aws_s3_bucket_ownership_controls" "this" {
@@ -43,7 +43,7 @@ resource "aws_s3_bucket_ownership_controls" "this" {
   ]
   bucket = aws_s3_bucket.this.id
   rule {
-    object_ownership = local.object_ownership
+    object_ownership = var.object_ownership
   }
 }
 
@@ -51,7 +51,7 @@ locals {
   // We have to do special things to allow CloudTrail digests to be written, since they
   // refuse to use KMS keys.
   // https://docs.aws.amazon.com/awscloudtrail/latest/userguide/encrypting-cloudtrail-log-files-with-aws-kms.html
-  allow_cloudtrail_digest = local.force_allow_cloudtrail_digest && local.used_kms_key_arn != null
+  allow_cloudtrail_digest = var.force_allow_cloudtrail_digest && local.used_kms_key_arn != null
 }
 
 // Create a bucket policy that requires all uploaded objects to be encrypted
@@ -60,7 +60,7 @@ data "aws_iam_policy_document" "this" {
   // Also apply all of the input policies, but don't let them override the security/encryption ones
   // Replace the BUCKET_ARN placeholder.
   source_policy_documents = [
-    for policy in local.bucket_policy_json_documents :
+    for policy in var.bucket_policy_json_documents :
     replace(policy, local.bucket_arn_placeholder, aws_s3_bucket.this.arn)
   ]
 
@@ -232,7 +232,7 @@ resource "aws_s3_bucket_policy" "this" {
 // if acceleration is enabled) because some regions don't support transfer
 // acceleration, even if we try to set it to "Suspended".
 resource "aws_s3_bucket_accelerate_configuration" "this" {
-  count = local.enable_transfer_acceleration ? 1 : 0
+  count = var.enable_transfer_acceleration ? 1 : 0
   depends_on = [
     aws_s3_bucket_policy.this
   ]
