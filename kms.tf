@@ -1,6 +1,6 @@
 // This generates a policy that allows the key's owner account to have full access via IAM
 data "aws_iam_policy_document" "kms" {
-  source_policy_documents = local.kms_key_policy_json_documents
+  source_policy_documents = var.kms_key_policy_json_documents
   statement {
     sid    = "Enable IAM Access for Owner Account"
     effect = "Allow"
@@ -20,7 +20,7 @@ data "aws_iam_policy_document" "kms" {
 }
 
 resource "aws_kms_key" "this" {
-  count = local.create_new_kms_key ? 1 : 0
+  count = var.create_new_kms_key ? 1 : 0
   depends_on = [
     module.assert_source_kms_key,
   ]
@@ -36,7 +36,7 @@ resource "aws_kms_key" "this" {
 }
 
 resource "aws_kms_replica_key" "this" {
-  count = local.create_replica_kms_key ? 1 : 0
+  count = var.create_replica_kms_key ? 1 : 0
   depends_on = [
     module.assert_source_kms_key,
   ]

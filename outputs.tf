@@ -11,63 +11,63 @@ output "versioned" {
 }
 output "mfa_delete_enabled" {
   description = "The value of the `mfa_delete_enabled` input variable, or the default value if the input was `null`."
-  value       = local.mfa_delete_enabled
+  value       = var.mfa_delete_enabled
 }
 output "object_lock_enabled" {
   description = "The value of the `object_lock_enabled` input variable, or the default value if the input was `null`."
-  value       = local.object_lock_enabled
+  value       = var.object_lock_enabled
 }
 output "force_destroy" {
   description = "The value of the `force_destroy` input variable, or the default value if the input was `null`."
-  value       = local.force_destroy
+  value       = var.force_destroy
 }
 output "create_new_kms_key" {
   description = "The value of the `create_new_kms_key` input variable, or the default value if the input was `null`."
-  value       = local.create_new_kms_key
+  value       = var.create_new_kms_key
 }
 output "create_replica_kms_key" {
   description = "The value of the `create_replica_kms_key` input variable, or the default value if the input was `null`."
-  value       = local.create_replica_kms_key
+  value       = var.create_replica_kms_key
 }
 output "kms_key_policy_json_documents" {
   description = "The value of the `kms_key_policy_json_documents` input variable, or the default value if the input was `null`."
-  value       = local.kms_key_policy_json_documents
+  value       = var.kms_key_policy_json_documents
 }
 output "bucket_policy_json_documents" {
   description = "The value of the `bucket_policy_json_documents` input variable, or the default value if the input was `null`."
-  value       = local.bucket_policy_json_documents
+  value       = var.bucket_policy_json_documents
 }
 output "enable_transfer_acceleration" {
   description = "The value of the `enable_transfer_acceleration` input variable, or the default value if the input was `null`."
-  value       = local.enable_transfer_acceleration
+  value       = var.enable_transfer_acceleration
 }
 output "block_public_acls" {
   description = "The value of the `block_public_acls` input variable, or the default value if the input was `null`."
-  value       = local.block_public_acls
+  value       = var.block_public_acls
 }
 output "block_public_policy" {
   description = "The value of the `block_public_policy` input variable, or the default value if the input was `null`."
-  value       = local.block_public_policy
+  value       = var.block_public_policy
 }
 output "ignore_public_acls" {
   description = "The value of the `ignore_public_acls` input variable, or the default value if the input was `null`."
-  value       = local.ignore_public_acls
+  value       = var.ignore_public_acls
 }
 output "restrict_public_buckets" {
   description = "The value of the `restrict_public_buckets` input variable, or the default value if the input was `null`."
-  value       = local.restrict_public_buckets
+  value       = var.restrict_public_buckets
 }
 output "object_ownership" {
   description = "The value of the `object_ownership` input variable, or the default value if the input was `null`."
-  value       = local.object_ownership
+  value       = var.object_ownership
 }
 output "append_region_suffix" {
   description = "The value of the `append_region_suffix` input variable, or the default value if the input was `null`."
-  value       = local.append_region_suffix
+  value       = var.append_region_suffix
 }
 output "force_allow_cloudtrail_digest" {
   description = "The value of the `force_allow_cloudtrail_digest` input variable, or the default value if the input was `null`."
-  value       = local.force_allow_cloudtrail_digest
+  value       = var.force_allow_cloudtrail_digest
 }
 
 //==================================================
