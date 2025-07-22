@@ -75,12 +75,12 @@ output "force_allow_cloudtrail_digest" {
 //==================================================
 output "region" {
   description = "The name of the region that the bucket was created in."
-  value       = data.aws_region.current.name
+  value       = local.region
 }
 
 output "account_id" {
   description = "The ID of the AWS account that the bucket was created in."
-  value       = data.aws_caller_identity.current.account_id
+  value       = local.account_id
 }
 
 output "bucket" {

@@ -126,3 +126,15 @@ variable "tags" {
   type        = map(string)
   default     = {}
 }
+
+variable "account_id" {
+  description = "The AWS account ID. If not provided, will be looked up via data source."
+  type        = string
+  default     = null
+}
+
+variable "region" {
+  description = "The AWS region. If not provided, will be looked up via data source."
+  type        = string
+  default     = null
+}
