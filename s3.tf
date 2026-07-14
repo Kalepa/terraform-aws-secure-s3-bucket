@@ -83,6 +83,38 @@ data "aws_iam_policy_document" "this" {
     }
   }
 
+  // Require TLS: deny any request made over a non-HTTPS (insecure) connection.
+  // Enforced on every bucket by default (like the encryption denies above) so buckets created
+  // by this module satisfy the SOC 2 / Vanta "S3 buckets allow only HTTPS traffic" control.
+  statement {
+    sid    = "DenyInsecureTransport"
+    effect = "Deny"
+
+    actions = [
+      "s3:*"
+    ]
+
+    resources = [
+      aws_s3_bucket.this.arn,
+      "${aws_s3_bucket.this.arn}/*"
+    ]
+
+    principals {
+      type = "*"
+      identifiers = [
+        "*"
+      ]
+    }
+
+    condition {
+      test     = "Bool"
+      variable = "aws:SecureTransport"
+      values = [
+        "false"
+      ]
+    }
+  }
+
   // If an encryption header is provided, ensure it matches the default
   statement {
     sid    = "DenyIncorrectEncryptionHeader"
